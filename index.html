@@ -52,12 +52,9 @@
 </div>
 
 <script>
-    // ==========================================
-    // ⬇️ 请在这里填入你刚才复制的两串神秘代码 ⬇️
-    // ==========================================
+    // 你的专属连接钥匙，我已经帮你原封不动地放进来了！
     const supabaseUrl = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
     const supabaseKey = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
-    // ==========================================
 
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     const { createApp } = Vue;
@@ -106,11 +103,11 @@
                     this.currentIndex++;
                 } else {
                     this.showResult = true;
-                    this.saveDataToCloud(); // 做完最后一题，触发上传
+                    this.saveDataToCloud();
                 }
             },
             async saveDataToCloud() {
-                const { data, error } = await supabase
+                const { error } = await supabase
                     .from('test_results')
                     .insert([
                         { 
@@ -122,6 +119,8 @@
                 
                 if (!error) {
                     this.uploadSuccess = true;
+                } else {
+                    console.error("上传失败:", error);
                 }
             },
             reset() {
