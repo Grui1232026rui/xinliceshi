@@ -3,67 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>静心心理测评中心 - 专业人格测试</title>
+    <title>职场情境与个人效能测评 - 津巴多心理学实验室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { background-color: #f8fafc; font-family: 'PingFang SC', sans-serif; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { background-color: #f1f5f9; font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+        .card-shadow { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+        .option-btn:active { transform: scale(0.98); }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 text-slate-800">
 
 <div id="app" class="max-w-2xl mx-auto">
     <header class="text-center mb-10">
-        <h1 class="text-3xl font-bold text-slate-800">静心心理空间</h1>
-        <p class="text-slate-500 mt-2">基于专业心理学模型的深度自我探索</p>
+        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">职场情境效能测评</h1>
+        <p class="text-slate-500 mt-2 font-medium">探索情境力量如何塑造你的职场决策</p>
+        <div class="mt-4 inline-block px-3 py-1 bg-slate-200 text-slate-600 text-xs rounded-full uppercase tracking-widest">Zimbardo Style Edition</div>
     </header>
 
-    <main class="bg-white rounded-3xl shadow-xl p-8 fade-in" v-if="!showResult">
-        <div class="mb-6">
-            <span class="text-sm font-semibold text-blue-500 tracking-widest">题目 {{currentIndex + 1}} / {{questions.length}}</span>
-            <div class="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" :style="{width: progress + '%'}"></div>
-            </div>
+    <main class="bg-white rounded-3xl card-shadow overflow-hidden" v-if="!showResult">
+        <div class="h-1.5 w-full bg-slate-100">
+            <div class="h-full bg-indigo-600 transition-all duration-500" :style="{width: progress + '%'}"></div>
         </div>
 
-        <h2 class="text-xl font-medium text-slate-800 mb-8 leading-relaxed">{{ currentQuestion.text }}</h2>
+        <div class="p-8 md:p-12">
+            <div class="mb-8">
+                <span class="text-indigo-600 font-bold text-sm uppercase tracking-wider">Question {{currentIndex + 1}} / 10</span>
+                <h2 class="text-xl md:text-2xl font-semibold mt-4 leading-snug text-slate-800">
+                    {{ currentQuestion.text }}
+                </h2>
+            </div>
 
-        <div class="space-y-4">
-            <button v-for="opt in options" 
-                    @click="selectOption(opt.score)"
-                    class="w-full text-left p-5 rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-[0.98]">
-                {{ opt.label }}
-            </button>
+            <div class="space-y-4">
+                <button v-for="opt in options" 
+                        @click="selectOption(opt.score)"
+                        class="option-btn w-full text-left p-5 rounded-2xl border-2 border-slate-50 hover:border-indigo-500 hover:bg-indigo-50 transition-all group">
+                    <div class="flex items-center">
+                        <div class="w-8 h-8 rounded-full border-2 border-slate-200 flex items-center justify-center mr-4 group-hover:border-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
+                            {{ opt.index }}
+                        </div>
+                        <span class="text-lg font-medium">{{ opt.label }}</span>
+                    </div>
+                </button>
+            </div>
         </div>
     </main>
 
-    <div v-else class="bg-white rounded-3xl shadow-xl p-10 fade-in text-center">
-        <div class="inline-block p-4 bg-blue-50 rounded-full mb-6">
-            <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <div v-else class="bg-white rounded-3xl card-shadow p-10 text-center animate-in fade-in duration-700">
+        <div class="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
         </div>
-        <h2 class="text-2xl font-bold text-slate-800 mb-4">测评报告</h2>
-        <div class="bg-slate-50 rounded-2xl p-6 mb-8">
-            <p class="text-lg text-slate-700 leading-relaxed">{{ finalReport }}</p>
+        <h2 class="text-2xl font-bold text-slate-900 mb-2">测评分析报告</h2>
+        <p class="text-slate-400 mb-8 text-sm">由津巴多职场心理模型驱动生成</p>
+        
+        <div class="bg-slate-50 rounded-2xl p-6 mb-8 text-left border border-slate-100">
+            <p class="text-lg text-slate-700 leading-relaxed italic">
+                “{{ finalReport }}”
+            </p>
         </div>
         
-        <p class="text-sm text-green-600 mb-8 font-bold flex items-center justify-center" v-if="uploadSuccess">
-            <span class="mr-1">✅</span> 测试结果已安全保存至云端后台
-        </p>
+        <div v-if="uploadSuccess" class="flex items-center justify-center text-green-600 font-bold mb-8 p-3 bg-green-50 rounded-xl">
+            <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
+            数据已同步至云端研究库
+        </div>
         
-        <button @click="reset" class="px-10 py-4 bg-slate-800 text-white rounded-full font-bold hover:bg-slate-700 transition-all">
-            重新测试
+        <button @click="reset" class="w-full md:w-auto px-12 py-4 bg-indigo-600 text-white rounded-2xl font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all">
+            开始新的探索
         </button>
     </div>
+
+    <footer class="mt-12 text-center text-slate-400 text-xs">
+        © 2026 基于津巴多斯坦福心理学研究模型
+    </footer>
 </div>
 
 <script>
-    // 数据库连接配置 (已修复命名冲突)
+    // 数据库连接配置
     const db_url = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
     const db_key = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
-    const mySupabase = window.supabase.createClient(db_url, db_key);
+    const myAppDB = window.supabase.createClient(db_url, db_key);
 
     const { createApp } = Vue;
 
@@ -74,25 +93,25 @@
                 totalScore: 0,
                 showResult: false,
                 uploadSuccess: false,
-                // 完整 10 道题目
+                // 津巴多教授设计的 10 道职场心理题
                 questions: [
-                    { text: "1. 我觉得自己是一个有价值的人，至少与其他人在同一水平上。" },
-                    { text: "2. 在公共场合讲话时，我会感到异常紧张或心跳加速。" },
-                    { text: "3. 我倾向于认为自己是一个失败者。" },
-                    { text: "4. 当我进入一个坐满人的房间时，我会感到大家都在注视我。" },
-                    { text: "5. 我能像大多数人一样，把事情做得一样好。" },
-                    { text: "6. 我常因担心自己说错话而选择在社交场合保持沉默。" },
-                    { text: "7. 我对自己持有一种肯定的态度。" },
-                    { text: "8. 即使在熟悉的人面前，我也很难自然地表达内心真实感受。" },
-                    { text: "9. 总的来说，我对自己是很满意的。" },
-                    { text: "10. 面对新的挑战时，我第一反应通常是“我不行”。" }
+                    { text: "1. 【权威情境】当上级给出一个明显错误、但语气坚定的指令时，我倾向于保持沉默并执行，而不是当面质疑。" },
+                    { text: "2. 【群体压力】在部门会议上，如果绝大多数同事都赞成某个方案，即使我有不同意见，也会选择附和大家。" },
+                    { text: "3. 【角色束缚】我感到“员工”这个角色限制了真实的自我表达，我在工作中展现的形象并非真实的我。" },
+                    { text: "4. 【时间压力】面对极其不合理、甚至不可能完成的任务截止时间，我的第一反应是感到恐慌，而不是寻找资源解决。" },
+                    { text: "5. 【去人性化】在处理客户或下属的问题时，我更倾向于按流程办事，很少去考虑他们个人的情感或特殊遭遇。" },
+                    { text: "6. 【责任分散】当项目出现重大失误且责任模糊时，我会下意识地寻找借口或暗示这是团队的整体责任，而不是主动承担。" },
+                    { text: "7. 【自我效能】即使身处裁员阴影或行业低谷这种大环境，我依然坚信自己可以通过努力掌控职业命运，而不是坐以待毙。" },
+                    { text: "8. 【道德两难】为了达成部门业绩目标或个人晋升，如果需要牺牲一点职业道德（如隐瞒瑕疵），我会感到内心挣扎但最终可能会妥协。" },
+                    { text: "9. 【英雄主义】在职场中看到不公正的现象（如排挤同事、欺上瞒下），即使与我无关，我也能挺身而出进行干预。" },
+                    { text: "10. 【未来取向】我能为了长远的职业发展目标，而主动放弃当下的安逸或眼前的短期利益。" }
                 ],
                 options: [
-                    { label: "非常符合", score: 5 },
-                    { label: "比较符合", score: 4 },
-                    { label: "一般", score: 3 },
-                    { label: "不太符合", score: 2 },
-                    { label: "完全不符合", score: 1 }
+                    { index: "A", label: "非常符合", score: 5 },
+                    { index: "B", label: "比较符合", score: 4 },
+                    { index: "C", label: "一般", score: 3 },
+                    { index: "D", label: "不太符合", score: 2 },
+                    { index: "E", label: "完全不符合", score: 1 }
                 ]
             }
         },
@@ -100,10 +119,10 @@
             currentQuestion() { return this.questions[this.currentIndex]; },
             progress() { return ((this.currentIndex + 1) / this.questions.length) * 100; },
             finalReport() {
-                if (this.totalScore >= 40) return "您的心理韧性极强，拥有极高的自我认同感和社交自信，能够游刃有余地处理各种压力。";
-                if (this.totalScore >= 30) return "您的心理状态处于健康水平。虽然偶尔会有自我怀疑，但大部分时间能保持积极乐观。";
-                if (this.totalScore >= 20) return "您的心理能量目前处于中等水平。建议多关注自己的情绪变化，尝试多与亲友交流。";
-                return "目前的测试结果显示您可能处于心理疲劳期。建议适当放松，必要时可以咨询专业心理导师进行排解。";
+                if (this.totalScore >= 40) return "【职场英雄】你拥有极强的自我效能感，不轻易受制于环境压力。你不仅能掌控职业命运，更能成为维护公平的正义力量。";
+                if (this.totalScore >= 30) return "【理性实践者】你具备稳健的心理素质，能在大多数情境下保持独立思考。你懂得以目标为导向，适度平衡压力。";
+                if (this.totalScore >= 20) return "【情境适应者】你容易受到环境和群体影响，倾向于通过顺从获得安全。建议增强自我认同，尝试在小事上坚持原则。";
+                return "【易感人群】你目前的心理能量较低，极易被情境俘获。职场压力可能让你感到无力，建议寻求专业支持以重建自信。";
             }
         },
         methods: {
@@ -113,25 +132,18 @@
                     this.currentIndex++;
                 } else {
                     this.showResult = true;
-                    this.saveDataToCloud();
+                    this.saveData();
                 }
             },
-            async saveDataToCloud() {
-                const { error } = await mySupabase
+            async saveData() {
+                const { error } = await myAppDB
                     .from('test_results')
-                    .insert([
-                        { 
-                            username: '匿名访客', 
-                            total_score: this.totalScore, 
-                            detail_answers: '完成全套10道题测评' 
-                        }
-                    ]);
-                
-                if (!error) {
-                    this.uploadSuccess = true;
-                } else {
-                    console.error("上传错误详情:", error);
-                }
+                    .insert([{ 
+                        username: '职场访客', 
+                        total_score: this.totalScore,
+                        detail_answers: '完成津巴多职场压力测评' 
+                    }]);
+                if (!error) this.uploadSuccess = true;
             },
             reset() {
                 this.currentIndex = 0;
