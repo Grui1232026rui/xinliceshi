@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>静心心理测评中心 - 专业人格测试</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body { background-color: #f0f4f8; font-family: 'PingFang SC', sans-serif; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
@@ -44,31 +46,41 @@
         </div>
         <h2 class="text-2xl font-bold text-slate-800 mb-4">测评报告</h2>
         <p class="text-lg text-slate-600 mb-6 leading-relaxed">{{ finalReport }}</p>
+        <p class="text-sm text-green-600 mb-6 font-bold" v-if="uploadSuccess">✅ 测试结果已安全保存至云端</p>
         <button @click="reset" class="px-8 py-3 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all">重新测试</button>
     </div>
 </div>
 
-<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 <script>
+    // ==========================================
+    // ⬇️ 请在这里填入你刚才复制的两串神秘代码 ⬇️
+    // ==========================================
+    const supabaseUrl = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
+    const supabaseKey = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
+    // ==========================================
+
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     const { createApp } = Vue;
+
     createApp({
         data() {
             return {
                 currentIndex: 0,
                 totalScore: 0,
                 showResult: false,
+                uploadSuccess: false,
                 questions: [
-    { text: "1. 我觉得自己是一个有价值的人，至少与其他人在同一水平上。" },
-    { text: "2. 在公共场合讲话时，我会感到异常紧张或心跳加速。" },
-    { text: "3. 我倾向于认为自己是一个失败者。" },
-    { text: "4. 当我进入一个坐满人的房间时，我会感到大家都在注视我。" },
-    { text: "5. 我能像大多数人一样，把事情做得一样好。" },
-    { text: "6. 我常因担心自己说错话而选择在社交场合保持沉默。" },
-    { text: "7. 我对自己持有一种肯定的态度。" },
-    { text: "8. 即使在熟悉的人面前，我也很难自然地表达内心真实感受。" },
-    { text: "9. 总的来说，我对自己是很满意的。" },
-    { text: "10. 面对新的挑战时，我第一反应通常是“我不行”。" }
-],
+                    { text: "1. 我觉得自己是一个有价值的人，至少与其他人在同一水平上。" },
+                    { text: "2. 在公共场合讲话时，我会感到异常紧张或心跳加速。" },
+                    { text: "3. 我倾向于认为自己是一个失败者。" },
+                    { text: "4. 当我进入一个坐满人的房间时，我会感到大家都在注视我。" },
+                    { text: "5. 我能像大多数人一样，把事情做得一样好。" },
+                    { text: "6. 我常因担心自己说错话而选择在社交场合保持沉默。" },
+                    { text: "7. 我对自己持有一种肯定的态度。" },
+                    { text: "8. 即使在熟悉的人面前，我也很难自然地表达内心真实感受。" },
+                    { text: "9. 总的来说，我对自己是很满意的。" },
+                    { text: "10. 面对新的挑战时，我第一反应通常是“我不行”。" }
+                ],
                 options: [
                     { label: "非常符合", score: 5 },
                     { label: "比较符合", score: 4 },
@@ -82,24 +94,41 @@
             currentQuestion() { return this.questions[this.currentIndex]; },
             progress() { return ((this.currentIndex + 1) / this.questions.length) * 100; },
             finalReport() {
-                if (this.totalScore >= 22) return "您的心理韧性极佳，具备卓越的自我调节能力和情绪智力，能胜任高压工作。";
-                if (this.totalScore >= 15) return "您的状态较为平衡，拥有健康的心理防御机制，建议定期进行心理放松。";
-                return "当前您的心理能量较低，可能处于一段压力期。建议尝试减少任务负荷，并增加规律的运动。";
+                if (this.totalScore >= 35) return "心理状态非常健康。你拥有强大的自我认同感和社交自信。";
+                if (this.totalScore >= 20) return "心理状态平稳。偶尔会有自我怀疑或社交焦虑，属于正常范围。";
+                return "当前您的心理能量较低。建议尝试多与积极的朋友沟通，必要时寻求专业心理咨询。";
             }
         },
         methods: {
-            selectOption(score) {
+            async selectOption(score) {
                 this.totalScore += score;
                 if (this.currentIndex < this.questions.length - 1) {
                     this.currentIndex++;
                 } else {
                     this.showResult = true;
+                    this.saveDataToCloud(); // 做完最后一题，触发上传
+                }
+            },
+            async saveDataToCloud() {
+                const { data, error } = await supabase
+                    .from('test_results')
+                    .insert([
+                        { 
+                            username: '匿名访客', 
+                            total_score: this.totalScore, 
+                            detail_answers: '完成了10道测评题' 
+                        }
+                    ]);
+                
+                if (!error) {
+                    this.uploadSuccess = true;
                 }
             },
             reset() {
                 this.currentIndex = 0;
                 this.totalScore = 0;
                 this.showResult = false;
+                this.uploadSuccess = false;
             }
         }
     }).mount('#app')
