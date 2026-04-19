@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>静心心理测评中心</title>
+    <title>静心心理测评中心 - 专业人格测试</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { background-color: #f8fafc; font-family: 'PingFang SC', sans-serif; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
-<body class="p-4 md:p-10 bg-slate-50">
+<body class="p-4 md:p-10">
 
 <div id="app" class="max-w-2xl mx-auto">
     <header class="text-center mb-10">
@@ -16,56 +21,71 @@
         <p class="text-slate-500 mt-2">基于专业心理学模型的深度自我探索</p>
     </header>
 
-    <main class="bg-white rounded-3xl shadow-xl p-8" v-if="!showResult">
+    <main class="bg-white rounded-3xl shadow-xl p-8 fade-in" v-if="!showResult">
         <div class="mb-6">
-            <span class="text-sm font-semibold text-blue-500 tracking-widest uppercase">题目 {{currentIndex + 1}} / {{questions.length}}</span>
+            <span class="text-sm font-semibold text-blue-500 tracking-widest">题目 {{currentIndex + 1}} / {{questions.length}}</span>
             <div class="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div class="bg-blue-500 h-2 rounded-full transition-all" :style="{width: ((currentIndex + 1) / questions.length) * 100 + '%'}"></div>
+                <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" :style="{width: progress + '%'}"></div>
             </div>
         </div>
 
-        <h2 class="text-xl font-medium text-slate-800 mb-8">{{ questions[currentIndex].text }}</h2>
+        <h2 class="text-xl font-medium text-slate-800 mb-8 leading-relaxed">{{ currentQuestion.text }}</h2>
 
         <div class="space-y-4">
-            <button v-for="opt in options" @click="selectOption(opt.score)"
-                    class="w-full text-left p-4 rounded-xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all">
+            <button v-for="opt in options" 
+                    @click="selectOption(opt.score)"
+                    class="w-full text-left p-5 rounded-2xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-[0.98]">
                 {{ opt.label }}
             </button>
         </div>
     </main>
 
-    <div v-else class="bg-white rounded-3xl shadow-xl p-8 text-center">
+    <div v-else class="bg-white rounded-3xl shadow-xl p-10 fade-in text-center">
+        <div class="inline-block p-4 bg-blue-50 rounded-full mb-6">
+            <svg class="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </div>
         <h2 class="text-2xl font-bold text-slate-800 mb-4">测评报告</h2>
-        <p class="text-lg text-slate-600 mb-6 leading-relaxed">{{ finalReport }}</p>
-        <p class="text-sm text-green-600 mb-6 font-bold" v-if="uploadSuccess">✅ 测试结果已安全保存至云端</p>
-        <button @click="reset" class="px-8 py-3 bg-slate-800 text-white rounded-full">重新测试</button>
+        <div class="bg-slate-50 rounded-2xl p-6 mb-8">
+            <p class="text-lg text-slate-700 leading-relaxed">{{ finalReport }}</p>
+        </div>
+        
+        <p class="text-sm text-green-600 mb-8 font-bold flex items-center justify-center" v-if="uploadSuccess">
+            <span class="mr-1">✅</span> 测试结果已安全保存至云端后台
+        </p>
+        
+        <button @click="reset" class="px-10 py-4 bg-slate-800 text-white rounded-full font-bold hover:bg-slate-700 transition-all">
+            重新测试
+        </button>
     </div>
 </div>
 
 <script>
-    // 这里的变量名改成了 myAppDatabase，彻底避开冲突
-    const s_url = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
-    const s_key = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
-    const myAppDatabase = window.supabase.createClient(s_url, s_key);
+    // 数据库连接配置 (已修复命名冲突)
+    const db_url = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
+    const db_key = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
+    const mySupabase = window.supabase.createClient(db_url, db_key);
 
-    Vue.createApp({
+    const { createApp } = Vue;
+
+    createApp({
         data() {
             return {
                 currentIndex: 0,
                 totalScore: 0,
                 showResult: false,
                 uploadSuccess: false,
+                // 完整 10 道题目
                 questions: [
-                    { text: "1. 我觉得自己是一个有价值的人。" },
-                    { text: "2. 在公共场合讲话时，我会感到紧张。" },
+                    { text: "1. 我觉得自己是一个有价值的人，至少与其他人在同一水平上。" },
+                    { text: "2. 在公共场合讲话时，我会感到异常紧张或心跳加速。" },
                     { text: "3. 我倾向于认为自己是一个失败者。" },
-                    { text: "4. 我感到大家都在注视我。" },
-                    { text: "5. 我能把事情做得一样好。" },
-                    { text: "6. 我常在社交场合保持沉默。" },
+                    { text: "4. 当我进入一个坐满人的房间时，我会感到大家都在注视我。" },
+                    { text: "5. 我能像大多数人一样，把事情做得一样好。" },
+                    { text: "6. 我常因担心自己说错话而选择在社交场合保持沉默。" },
                     { text: "7. 我对自己持有一种肯定的态度。" },
-                    { text: "8. 我很难自然地表达内心感受。" },
+                    { text: "8. 即使在熟悉的人面前，我也很难自然地表达内心真实感受。" },
                     { text: "9. 总的来说，我对自己是很满意的。" },
-                    { text: "10. 面对挑战时，我第一反应是“我不行”。" }
+                    { text: "10. 面对新的挑战时，我第一反应通常是“我不行”。" }
                 ],
                 options: [
                     { label: "非常符合", score: 5 },
@@ -77,27 +97,41 @@
             }
         },
         computed: {
+            currentQuestion() { return this.questions[this.currentIndex]; },
+            progress() { return ((this.currentIndex + 1) / this.questions.length) * 100; },
             finalReport() {
-                if (this.totalScore >= 35) return "心理状态非常健康。";
-                if (this.totalScore >= 20) return "心理状态平稳。";
-                return "建议关注心理健康。";
+                if (this.totalScore >= 40) return "您的心理韧性极强，拥有极高的自我认同感和社交自信，能够游刃有余地处理各种压力。";
+                if (this.totalScore >= 30) return "您的心理状态处于健康水平。虽然偶尔会有自我怀疑，但大部分时间能保持积极乐观。";
+                if (this.totalScore >= 20) return "您的心理能量目前处于中等水平。建议多关注自己的情绪变化，尝试多与亲友交流。";
+                return "目前的测试结果显示您可能处于心理疲劳期。建议适当放松，必要时可以咨询专业心理导师进行排解。";
             }
         },
         methods: {
-            selectOption(score) {
+            async selectOption(score) {
                 this.totalScore += score;
                 if (this.currentIndex < this.questions.length - 1) {
                     this.currentIndex++;
                 } else {
                     this.showResult = true;
-                    this.saveData();
+                    this.saveDataToCloud();
                 }
             },
-            async saveData() {
-                const { error } = await myAppDatabase
+            async saveDataToCloud() {
+                const { error } = await mySupabase
                     .from('test_results')
-                    .insert([{ username: '访客', total_score: this.totalScore }]);
-                if (!error) this.uploadSuccess = true;
+                    .insert([
+                        { 
+                            username: '匿名访客', 
+                            total_score: this.totalScore, 
+                            detail_answers: '完成全套10道题测评' 
+                        }
+                    ]);
+                
+                if (!error) {
+                    this.uploadSuccess = true;
+                } else {
+                    console.error("上传错误详情:", error);
+                }
             },
             reset() {
                 this.currentIndex = 0;
@@ -106,7 +140,7 @@
                 this.uploadSuccess = false;
             }
         }
-    }).mount('#app');
+    }).mount('#app')
 </script>
 </body>
 </html>
