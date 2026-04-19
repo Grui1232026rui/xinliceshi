@@ -1,62 +1,9 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>静心心理测评中心 - 专业人格测试</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        body { background-color: #f0f4f8; font-family: 'PingFang SC', sans-serif; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
-</head>
-<body class="p-4 md:p-10">
-
-<div id="app" class="max-w-2xl mx-auto">
-    <header class="text-center mb-10">
-        <h1 class="text-3xl font-bold text-slate-800">静心心理空间</h1>
-        <p class="text-slate-500 mt-2">基于专业心理学模型的深度自我探索</p>
-    </header>
-
-    <main class="bg-white rounded-3xl shadow-xl p-8 fade-in" v-if="!showResult">
-        <div class="mb-6">
-            <span class="text-sm font-semibold text-blue-500 tracking-widest uppercase">题目 {{currentIndex + 1}} / {{questions.length}}</span>
-            <div class="w-full bg-gray-200 h-2 rounded-full mt-2">
-                <div class="bg-blue-500 h-2 rounded-full transition-all" :style="{width: progress + '%'}"></div>
-            </div>
-        </div>
-
-        <h2 class="text-xl font-medium text-slate-800 mb-8">{{ currentQuestion.text }}</h2>
-
-        <div class="space-y-4">
-            <button v-for="opt in options" 
-                    @click="selectOption(opt.score)"
-                    class="w-full text-left p-4 rounded-xl border-2 border-slate-100 hover:border-blue-400 hover:bg-blue-50 transition-all active:scale-95">
-                {{ opt.label }}
-            </button>
-        </div>
-    </main>
-
-    <div v-else class="bg-white rounded-3xl shadow-xl p-8 fade-in text-center">
-        <div class="inline-block p-4 bg-blue-100 rounded-full mb-4">
-            <svg class="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-        </div>
-        <h2 class="text-2xl font-bold text-slate-800 mb-4">测评报告</h2>
-        <p class="text-lg text-slate-600 mb-6 leading-relaxed">{{ finalReport }}</p>
-        <p class="text-sm text-green-600 mb-6 font-bold" v-if="uploadSuccess">✅ 测试结果已安全保存至云端</p>
-        <button @click="reset" class="px-8 py-3 bg-slate-800 text-white rounded-full hover:bg-slate-700 transition-all">重新测试</button>
-    </div>
-</div>
-
 <script>
-    // 你的专属连接钥匙（已经填好）
     const supabaseUrl = 'https://tuwamrzjrflwrnqwqbof.supabase.co'; 
     const supabaseKey = 'sb_publishable_pZkmGAvPuJ_aHcrg1DVdSA_6TtZx0bv';
 
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    // 这里改成了 supabaseDB，避开了命名冲突
+    const supabaseDB = window.supabase.createClient(supabaseUrl, supabaseKey);
     const { createApp } = Vue;
 
     createApp({
@@ -107,7 +54,8 @@
                 }
             },
             async saveDataToCloud() {
-                const { error } = await supabase
+                // 注意这里也要用 supabaseDB
+                const { error } = await supabaseDB
                     .from('test_results')
                     .insert([
                         { 
@@ -132,5 +80,3 @@
         }
     }).mount('#app')
 </script>
-</body>
-</html>
